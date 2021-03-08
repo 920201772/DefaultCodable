@@ -7,4 +7,4 @@ A description of this package.
 - Swift 5.3+
 
 ## Installation
-Swift Packages https://github.com/920201772/JSON.git
+Swift Packages https://github.com/920201772/DefaultCodable.git
