@@ -8,18 +8,16 @@
 
 import Foundation
 
-public protocol JSON: Codable {
-    
-    init()
-    
-}
-
-// MARK: - Public
+public protocol JSON: DefaultCodable {}
 public extension JSON {
     
     static func decode(data: Data) throws -> Self {
-        let decoder = JSONDecoder()
-        return try decoder.decode(self, from: data)
+        let decoder = DefaultDecoder()
+        guard let dict = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw DecodingError.typeMismatch([String: Any].self, .init(codingPath: [], debugDescription: "The given data was not valid JSON."))
+        }
+        
+        return try decoder.decode(self, from: dict)
     }
     
     static func decode(text: String) throws -> Self {

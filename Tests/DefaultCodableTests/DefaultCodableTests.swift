@@ -1,5 +1,5 @@
 import XCTest
-@testable import JSON
+@testable import DefaultCodable
 
 struct AAA: JSON {
     

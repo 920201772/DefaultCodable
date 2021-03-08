@@ -1,19 +1,20 @@
 //
-//  JSONKeyedDecodingContainer.swift
-//  JSON
+//  DefaultKeyedDecodingContainer.swift
+//  DefaultCodable
 //
 //  Created by 杨柳 on 2021/2/26.
 //  Copyright © 2021 Kun. All rights reserved.
 //
 
 import Foundation
+import CoreGraphics
 
-struct JSONKeyedDecodingContainer<T: JSON, Key: CodingKey> {
+struct DefaultKeyedDecodingContainer<Key: CodingKey> {
     
-    private let decoder: _JSONDecoder<T>
+    private let decoder: _DefaultDecoder
     private let container: [String: Any]
     
-    init(decoder: _JSONDecoder<T>, container: [String: Any]) {
+    init(decoder: _DefaultDecoder, container: [String: Any]) {
         self.decoder = decoder
         self.container = container
     }
@@ -21,11 +22,21 @@ struct JSONKeyedDecodingContainer<T: JSON, Key: CodingKey> {
 }
 
 // MARK: - Private
-private extension JSONKeyedDecodingContainer {
+private extension DefaultKeyedDecodingContainer {
     
     func getValue<Value>(key: String) -> Value? {
-        if let value = container[key] as? Value {
-            return value
+        if let value = container[decoder.getRealKey(key: key)] {
+            if decoder.options.contains(.string) {
+                if let string = value as? String,
+                   let type = Value.self as? RawString.Type,
+                   let value = type.init(rawString: string) as? Value {
+                    return value
+                }
+            }
+            
+            if let value = value as? Value {
+                return value
+            }
         }
         
         return decoder.getValueDefault(key: key) as? Value
@@ -48,7 +59,7 @@ private extension JSONKeyedDecodingContainer {
 }
 
 // MARK: - KeyedDecodingContainerProtocol
-extension JSONKeyedDecodingContainer: KeyedDecodingContainerProtocol {
+extension DefaultKeyedDecodingContainer: KeyedDecodingContainerProtocol {
     
     typealias Key = Key
     
@@ -131,11 +142,14 @@ extension JSONKeyedDecodingContainer: KeyedDecodingContainerProtocol {
         let value: Any
         
         switch type {
-        case is JSON.Type, is JSONDecodableDictionaryMarker.Type:
+        case is DefaultCodable.Type, is CodableDictionaryMarker.Type:
             value = try _decode([String: Any].self, forKey: key)
         
-        case is JSONDecodableArrayMarker.Type:
+        case is CodableArrayMarker.Type:
             value = try _decode([Any].self, forKey: key)
+            
+        case is CGFloat.Type:
+            value = try _decode(Double.self, forKey: key)
             
         default:
             value = try _decode(Any.self, forKey: key)
@@ -204,14 +218,17 @@ extension JSONKeyedDecodingContainer: KeyedDecodingContainerProtocol {
         let value: Any?
         
         switch type {
-        case is JSON.Type, is JSONDecodableDictionaryMarker.Type:
+        case is DefaultCodable.Type, is CodableDictionaryMarker.Type:
             value = try _decodeNil([String: Any].self, forKey: key)
         
-        case is JSONDecodableArrayMarker.Type:
+        case is CodableArrayMarker.Type:
             value = try _decodeNil([Any].self, forKey: key)
             
+        case is CGFloat.Type:
+            value = try _decodeNil(Double.self, forKey: key)
+            
         default:
-            value = try _decodeNil(type, forKey: key)
+            value = try _decodeNil(Any.self, forKey: key)
         }
         
         if let value = value {
@@ -223,7 +240,7 @@ extension JSONKeyedDecodingContainer: KeyedDecodingContainerProtocol {
     
     func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
         let value = try _decode([String: Any].self, forKey: key)
-        let container = JSONKeyedDecodingContainer<T, NestedKey>(decoder: decoder, container: value)
+        let container = DefaultKeyedDecodingContainer<NestedKey>(decoder: decoder, container: value)
         
         return KeyedDecodingContainer(container)
     }
@@ -231,7 +248,7 @@ extension JSONKeyedDecodingContainer: KeyedDecodingContainerProtocol {
     func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
         let value = try _decode([Any].self, forKey: key)
         
-        return JSONUnkeyedDecodingContainer(decoder: decoder, container: value)
+        return DefaultUnkeyedDecodingContainer(decoder: decoder, container: value)
     }
     
     func superDecoder() throws -> Decoder {

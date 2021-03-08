@@ -1,6 +1,6 @@
 //
-//  JSONDecoder.swift
-//  JSONDecoder
+//  DefaultDecoder.swift
+//  DefaultCodable
 //
 //  Created by 杨柳 on 2021/2/26.
 //  Copyright © 2021 Kun. All rights reserved.
@@ -8,62 +8,88 @@
 
 import Foundation
 
-class JSONDecoder {
+public final class DefaultDecoder {
+    
+    public let options: CodableOptions
     
     fileprivate var defaultValues: [String: [String: Any]] = [:]
+    fileprivate var realKeys: [String: [String: String]] = [:]
     
-}
-
-protocol JSONDecodableArrayMarker {}
-extension Array: JSONDecodableArrayMarker where Element: Any {}
-protocol JSONDecodableDictionaryMarker {}
-extension Dictionary: JSONDecodableDictionaryMarker where Key == String, Value: Any {}
-protocol JSONDecodableOptionalMarker {}
-extension Optional: JSONDecodableOptionalMarker where Wrapped: Any {}
-
-// MARK: - Method
-extension JSONDecoder {
-    
-    func decode<T: JSON>(_ type: T.Type, from data: Data) throws -> T {
-        guard let value = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-            throw DecodingError.typeMismatch([String: Any].self, .init(codingPath: [], debugDescription: "The given data was not valid JSON."))
-        }
-        
-        let decoder = _JSONDecoder<T>(decoder: self)
-        
-        return try decoder.unbox(value, as: type)
+    init(options: CodableOptions = DefaultCodableOptions) {
+        self.options = options
     }
     
 }
 
-// MARK: - _JSONDecoder
-class _JSONDecoder<T: JSON> {
+// MARK: - Public
+public extension DefaultDecoder {
     
-    private var storage = JSONDecodingStorage()
-    private lazy var typeName = "\(T.self)"
+    func decode<T: DefaultCodable>(_ type: T.Type, from dictionary: [String: Any]) throws -> T {
+        let decoder = _DefaultDecoder(decoder: self)
+        return try decoder.unbox(dictionary, as: type)
+    }
     
-    private let decoder: JSONDecoder
+}
+
+// MARK: - _DefaultDecoder
+final class _DefaultDecoder {
     
-    init(decoder: JSONDecoder) {
+    var options: CodableOptions { decoder.options }
+    
+    private var storage = DecodingStorage<(Any, Any.Type)>()
+    
+    private let decoder: DefaultDecoder
+    
+    
+    init(decoder: DefaultDecoder) {
         self.decoder = decoder
     }
     
 }
 
-// MARK: - _JSONDecoder Method
-extension _JSONDecoder {
+// MARK: - _DefaultDecoder Method
+extension _DefaultDecoder {
     
     func unbox<T: Decodable>(_ value: Any, as type: T.Type) throws -> T {
-        storage.push(container: value)
+        storage.push(container: (value, type))
         defer { storage.popContainer() }
         
         return try T.init(from: self)
     }
     
+    func getRealKey(key: String) -> String {
+        let type = String(reflecting: storage.topContainer.1)
+        let realKey = decoder.realKeys[type] ?? {
+            guard let codable = storage.topContainer.1 as? DefaultCodable.Type else {
+                return [:]
+            }
+            
+            let this = codable.keyMapping
+            decoder.realKeys[type] = this
+            
+            return this
+        }()
+        
+        if let key = realKey[key] {
+            return key
+        }
+        
+        if decoder.options.contains(.capitalized) {
+            return key.prefixCapitalized
+        }
+        
+        return key
+    }
+    
     func getValueDefault(key: String) -> Any? {
-        let defaultValue = decoder.defaultValues[typeName] ?? {
-            let this = T.defaultEncodeJSON()
-            decoder.defaultValues[typeName] = this
+        let type = String(reflecting: storage.topContainer.1)
+        let defaultValue = decoder.defaultValues[type] ?? {
+            guard let codable = storage.topContainer.1 as? DefaultCodable.Type else {
+                return [:]
+            }
+            
+            let this = codable.defaultSerialization()
+            decoder.defaultValues[type] = this
             
             return this
         }()
@@ -73,11 +99,11 @@ extension _JSONDecoder {
     
 }
 
-// MARK: - _JSONDecoder Private
-private extension _JSONDecoder {
+// MARK: - _DefaultDecoder Private
+private extension _DefaultDecoder {
     
     func unbox<T>(_ type: T.Type) throws -> T {
-        guard let value = storage.topContainer as? T else {
+        guard let value = storage.topContainer.0 as? T else {
             throw DecodingError.valueNotFound(type, .init(codingPath: codingPath, debugDescription: "Expected \(type) but found nil value instead."))
         }
         
@@ -86,28 +112,28 @@ private extension _JSONDecoder {
     
 }
 
-// MARK: - _JSONDecoder Decoder
-extension _JSONDecoder: Decoder {
+// MARK: - _DefaultDecoder Decoder
+extension _DefaultDecoder: Decoder {
     
     var codingPath: [CodingKey] { [] }
     var userInfo: [CodingUserInfoKey: Any] { [:] }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
-        guard let topContainer = storage.topContainer as? [String : Any] else {
+        guard let topContainer = storage.topContainer.0 as? [String : Any] else {
             throw DecodingError.typeMismatch([String: Any].self, DecodingError.Context.init(codingPath: codingPath, debugDescription: "The given data was not valid Dictionary."))
         }
 
-        let container = JSONKeyedDecodingContainer<T, Key>(decoder: self, container: topContainer)
+        let container = DefaultKeyedDecodingContainer<Key>(decoder: self, container: topContainer)
         
         return KeyedDecodingContainer(container)
     }
     
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-        guard let topContainer = storage.topContainer as? [Any] else {
+        guard let topContainer = storage.topContainer.0 as? [Any] else {
             throw DecodingError.typeMismatch([Any].self, DecodingError.Context.init(codingPath: codingPath, debugDescription: "The given data was not valid Array."))
         }
 
-        return JSONUnkeyedDecodingContainer(decoder: self, container: topContainer)
+        return DefaultUnkeyedDecodingContainer(decoder: self, container: topContainer)
     }
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
@@ -116,11 +142,11 @@ extension _JSONDecoder: Decoder {
     
 }
 
-// MARK: _JSONDecoder SingleValueDecodingContainer
-extension _JSONDecoder : SingleValueDecodingContainer {
+// MARK: _DefaultDecoder SingleValueDecodingContainer
+extension _DefaultDecoder : SingleValueDecodingContainer {
 
     func decodeNil() -> Bool {
-        storage.topContainer is NSNull
+        storage.topContainer.0 is NSNull
     }
 
     func decode(_ type: Bool.Type) throws -> Bool {
@@ -180,7 +206,7 @@ extension _JSONDecoder : SingleValueDecodingContainer {
     }
 
     func decode<T : Decodable>(_ type: T.Type) throws -> T {
-        try unbox(storage.topContainer, as: type)
+        try unbox(storage.topContainer.0, as: type)
     }
     
 }

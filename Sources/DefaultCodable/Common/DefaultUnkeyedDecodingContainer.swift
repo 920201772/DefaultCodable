@@ -1,21 +1,22 @@
 //
-//  JSONUnkeyedDecodingContainer.swift
-//  JSON
+//  DefaultUnkeyedDecodingContainer.swift
+//  DefaultCodable
 //
 //  Created by 杨柳 on 2021/2/27.
 //  Copyright © 2021 Kun. All rights reserved.
 //
 
 import Foundation
+import CoreGraphics
 
-struct JSONUnkeyedDecodingContainer<T: JSON> {
+struct DefaultUnkeyedDecodingContainer {
     
     private(set) var currentIndex = 0
     
-    private let decoder: _JSONDecoder<T>
+    private let decoder: _DefaultDecoder
     private let container: [Any]
     
-    init(decoder: _JSONDecoder<T>, container: [Any]) {
+    init(decoder: _DefaultDecoder, container: [Any]) {
         self.decoder = decoder
         self.container = container
     }
@@ -23,26 +24,37 @@ struct JSONUnkeyedDecodingContainer<T: JSON> {
 }
 
 // MARK: - Private
-private extension JSONUnkeyedDecodingContainer {
+private extension DefaultUnkeyedDecodingContainer {
     
     mutating func _decode<Value>(_ type: Value.Type) throws -> Value {
         guard !self.isAtEnd else {
             throw DecodingError.valueNotFound(type, .init(codingPath: codingPath, debugDescription: "Unkeyed container is at end."))
         }
         
-        guard let value = container[currentIndex] as? Value else {
-            throw DecodingError.valueNotFound(type, .init(codingPath: codingPath, debugDescription: "Expected \(type) but found null instead."))
+        let value = container[currentIndex]
+        if decoder.options.contains(.string) {
+            if let string = value as? String,
+               let type = Value.self as? RawString.Type,
+               let value = type.init(rawString: string) as? Value {
+                currentIndex += 1
+                
+                return value
+            }
         }
         
-        currentIndex += 1
+        if let value = value as? Value {
+            currentIndex += 1
+            
+            return value
+        }
         
-        return value
+        throw DecodingError.valueNotFound(type, .init(codingPath: codingPath, debugDescription: "Expected \(type) but found null instead."))
     }
     
 }
 
 // MARK: - KeyedDecodingContainerProtocol
-extension JSONUnkeyedDecodingContainer: UnkeyedDecodingContainer {
+extension DefaultUnkeyedDecodingContainer: UnkeyedDecodingContainer {
     
     var codingPath: [CodingKey] { decoder.codingPath }
     var count: Int? { container.count }
@@ -122,17 +134,17 @@ extension JSONUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         let value: Any
         
         switch type {
-        case is JSONDecodableOptionalMarker.Type:
-            value = try _decode(Any.self)
-        
-        case is JSON.Type, is JSONDecodableDictionaryMarker.Type:
+        case is DefaultCodable.Type, is CodableDictionaryMarker.Type:
             value = try _decode([String: Any].self)
         
-        case is JSONDecodableArrayMarker.Type:
+        case is CodableArrayMarker.Type:
             value = try _decode([Any].self)
             
+        case is CGFloat.Type:
+            value = try _decode(Double.self)
+            
         default:
-            value = try _decode(type)
+            value = try _decode(Any.self)
         }
         
         return try decoder.unbox(value, as: type)
@@ -140,7 +152,7 @@ extension JSONUnkeyedDecodingContainer: UnkeyedDecodingContainer {
     
     mutating func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
         let value = try _decode([String: Any].self)
-        let container = JSONKeyedDecodingContainer<T, NestedKey>(decoder: decoder, container: value)
+        let container = DefaultKeyedDecodingContainer<NestedKey>(decoder: decoder, container: value)
         
         return KeyedDecodingContainer(container)
     }
@@ -148,7 +160,7 @@ extension JSONUnkeyedDecodingContainer: UnkeyedDecodingContainer {
     mutating func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
         let value = try _decode([Any].self)
         
-        return JSONUnkeyedDecodingContainer(decoder: decoder, container: value)
+        return DefaultUnkeyedDecodingContainer(decoder: decoder, container: value)
     }
     
     func superDecoder() throws -> Decoder {

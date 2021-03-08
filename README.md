@@ -1,4 +1,4 @@
-# JSON
+# DefaultCodable
 A description of this package.
 
 ## Requirements

@@ -4,25 +4,25 @@
 import PackageDescription
 
 let package = Package(
-    name: "JSON",
+    name: "DefaultCodable",
     platforms: [
         .iOS(.v12),
         .macOS(.v10_14)
     ],
     products: [
         .library(
-            name: "JSON",
-            targets: ["JSON"]),
+            name: "DefaultCodable",
+            targets: ["DefaultCodable"]),
     ],
     dependencies: [
         
     ],
     targets: [
         .target(
-            name: "JSON",
+            name: "DefaultCodable",
             dependencies: []),
         .testTarget(
-            name: "JSONTests",
-            dependencies: ["JSON"]),
+            name: "DefaultCodableTests",
+            dependencies: ["DefaultCodable"]),
     ]
 )
