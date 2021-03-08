@@ -14,13 +14,10 @@ let package = Package(
             name: "DefaultCodable",
             targets: ["DefaultCodable"]),
     ],
-    dependencies: [
-        
-    ],
     targets: [
         .target(
             name: "DefaultCodable",
-            dependencies: []),
+            path: "Sources"),
         .testTarget(
             name: "DefaultCodableTests",
             dependencies: ["DefaultCodable"]),
