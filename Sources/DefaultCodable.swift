@@ -19,6 +19,12 @@ public protocol DefaultCodable: Codable {
     
 }
 
+public extension DefaultCodable {
+    
+    static var keyMapping: [String: String] { [:] }
+    
+}
+
 // MARK: - CodableOptions
 public struct CodableOptions: OptionSet {
 
@@ -46,22 +52,8 @@ extension Optional: CodableOptionalMarker where Wrapped: Any {}
 
 extension DefaultCodable {
     
-    static var keyMapping: [String: String] { [:] }
-    
     static func defaultSerialization() -> [String: Any] {
         (try? JSONSerialization.jsonObject(with: JSONEncoder().encode(self.init()))) as? [String: Any] ?? [:]
-    }
-    
-}
-
-// MARK: - String
-extension String {
-    
-    var prefixCapitalized: Self {
-        var this = self
-        this[0] = this[0].uppercased()
-        
-        return this
     }
     
 }

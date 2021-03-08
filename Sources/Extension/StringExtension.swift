@@ -25,6 +25,13 @@ extension Optional where Wrapped == String {
 
 extension String {
     
+    var prefixCapitalized: Self {
+        var this = self
+        this[0] = this[0].uppercased()
+        
+        return this
+    }
+    
     /// 字符串为空返回占位符
     func isEmpty(_ placeholder: String) -> String {
         return isEmpty ? placeholder : self
