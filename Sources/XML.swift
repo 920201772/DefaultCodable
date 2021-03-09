@@ -12,7 +12,7 @@ public protocol XML: DefaultCodable {}
 public extension XML {
     
     static func decode(url: URL, options: CodableOptions = DefaultCodableOptions) throws -> Self {
-        let decoder = DefaultDecoder(options: [options, .string])
+        let decoder = DefaultDecoder(options: [options, .xml])
         let dict = try XMLSerialization.dictionary(url: url)
         
         return try decoder.decode(self, from: dict)

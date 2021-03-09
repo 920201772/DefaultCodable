@@ -34,8 +34,8 @@ public struct CodableOptions: OptionSet {
         self.rawValue = rawValue
     }
     
-    /// value 为字符串，value 自动转换
-    static let string = Self(rawValue: 1 << 0)
+    /// XML 解析
+    static let xml = Self(rawValue: 1 << 0)
     
     /// key 首字母大写
     public static let capitalized = Self(rawValue: 1 << 0)

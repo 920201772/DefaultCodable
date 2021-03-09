@@ -26,16 +26,21 @@ private extension DefaultKeyedDecodingContainer {
     
     func getValue<Value>(key: String) -> Value? {
         if let value = container[decoder.getRealKey(key: key)] {
-            if decoder.options.contains(.string) {
-                if let string = value as? String,
-                   let type = Value.self as? RawString.Type,
+            if let value = value as? Value {
+                return value
+            }
+            
+            if decoder.options.contains(.xml) {
+                if Value.self is CodableArrayMarker.Type,
+                   let value = [value] as? Value {
+                    return value
+                }
+                
+                if let type = Value.self as? RawString.Type,
+                   let string = value as? String,
                    let value = type.init(rawString: string) as? Value {
                     return value
                 }
-            }
-            
-            if let value = value as? Value {
-                return value
             }
         }
         
