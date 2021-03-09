@@ -2,7 +2,7 @@
 A description of this package.
 
 ## Requirements
-- iOS 12.0+ / macOS 10.14+
+- iOS 10.0+ / macOS 10.12+
 - Xcode 12.0+
 - Swift 5.3+
 

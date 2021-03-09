@@ -25,10 +25,6 @@ public final class XMLSerialization {
         return xml.container as! [String: Any]
     }
     
-    public class func dictionary(path: String) throws -> [String: Any] {
-        try dictionary(url: .init(fileURLWithPath: path))
-    }
-    
 }
 
 // MARK: - _XMLDecode
@@ -50,9 +46,9 @@ extension _XMLParser: XMLParserDelegate {
             container = attr
         } else if let element = storage.topContainer[elementName] {
             if let array = element as? NSMutableArray {
-                array.add(attributeDict)
+                array.add(attr)
             } else {
-                storage.topContainer[elementName] = NSMutableArray(arrayLiteral: element, attributeDict)
+                storage.topContainer[elementName] = NSMutableArray(arrayLiteral: element, attr)
             }
         } else {
             storage.topContainer[elementName] = attr

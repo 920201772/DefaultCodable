@@ -17,5 +17,9 @@ public extension XML {
         
         return try decoder.decode(self, from: dict)
     }
+    
+    static func dictionary(path: String, options: CodableOptions = DefaultCodableOptions) throws -> Self {
+        try decode(url: .init(fileURLWithPath: path), options: options)
+    }
      
 }
