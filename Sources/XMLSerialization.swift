@@ -25,6 +25,10 @@ public final class XMLSerialization {
         return xml.container as! [String: Any]
     }
     
+    public class func dictionary(path: String) throws -> [String: Any] {
+        try dictionary(url: .init(fileURLWithPath: path))
+    }
+    
 }
 
 // MARK: - _XMLDecode

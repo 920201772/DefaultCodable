@@ -6,8 +6,8 @@ import PackageDescription
 let package = Package(
     name: "DefaultCodable",
     platforms: [
-        .iOS(.v12),
-        .macOS(.v10_14)
+        .iOS(.v10),
+        .macOS(.v10_12)
     ],
     products: [
         .library(
