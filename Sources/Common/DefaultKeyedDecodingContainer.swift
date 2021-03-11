@@ -30,7 +30,7 @@ private extension DefaultKeyedDecodingContainer {
                 return value
             }
             
-            if decoder.options.contains(.xml) {
+            if decoder.decoder.options.contains(.xml) {
                 if Value.self is CodableArrayMarker.Type,
                    let value = [value] as? Value {
                     return value
@@ -52,6 +52,10 @@ private extension DefaultKeyedDecodingContainer {
         
         guard let value: Value = getValue(key: keyName) else {
             throw DecodingError.keyNotFound(key, .init(codingPath: decoder.codingPath, debugDescription: "No value associated with key: \(keyName)."))
+        }
+        
+        if let newValue = decoder.topCodable?.decode(value: value, key: key, decoder: decoder.decoder) {
+            return newValue
         }
         
         return value

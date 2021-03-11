@@ -15,6 +15,8 @@ public protocol DefaultCodable: Codable {
     
     static var keyMapping: [String: String] { get }
     
+    static func decode<T>(value: T, key: CodingKey, decoder: DefaultDecoder) -> T
+    
     init()
     
 }
@@ -22,6 +24,10 @@ public protocol DefaultCodable: Codable {
 public extension DefaultCodable {
     
     static var keyMapping: [String: String] { [:] }
+    
+    static func decode<T>(value: T, key: CodingKey, decoder: DefaultDecoder) -> T {
+        value
+    }
     
 }
 

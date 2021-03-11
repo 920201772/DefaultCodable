@@ -11,15 +11,15 @@ import Foundation
 public protocol XML: DefaultCodable {}
 public extension XML {
     
-    static func decode(url: URL, options: CodableOptions = DefaultCodableOptions) throws -> Self {
-        let decoder = DefaultDecoder(options: [options, .xml])
+    static func decode(url: URL, options: CodableOptions = DefaultCodableOptions, userInfo: [AnyHashable: Any] = [:]) throws -> Self {
+        let decoder = DefaultDecoder(options: [options, .xml], userInfo: userInfo)
         let dict = try XMLSerialization.dictionary(url: url)
         
-        return try decoder.decode(self, from: dict)
+        return try decoder.decode(self, dictionary: dict)
     }
     
-    static func dictionary(path: String, options: CodableOptions = DefaultCodableOptions) throws -> Self {
-        try decode(url: .init(fileURLWithPath: path), options: options)
+    static func decode(path: String, options: CodableOptions = DefaultCodableOptions, userInfo: [AnyHashable: Any] = [:]) throws -> Self {
+        try decode(url: .init(fileURLWithPath: path), options: options, userInfo: userInfo)
     }
      
 }

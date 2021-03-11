@@ -10,13 +10,16 @@ import Foundation
 
 public final class DefaultDecoder {
     
+    public var userInfo: [AnyHashable: Any]
+    
     public let options: CodableOptions
     
     fileprivate var defaultValues: [String: [String: Any]] = [:]
     fileprivate var realKeys: [String: [String: String]] = [:]
     
-    init(options: CodableOptions = DefaultCodableOptions) {
+    init(options: CodableOptions = DefaultCodableOptions, userInfo: [AnyHashable: Any] = [:]) {
         self.options = options
+        self.userInfo = userInfo
     }
     
 }
@@ -24,7 +27,7 @@ public final class DefaultDecoder {
 // MARK: - Public
 public extension DefaultDecoder {
     
-    func decode<T: DefaultCodable>(_ type: T.Type, from dictionary: [String: Any]) throws -> T {
+    func decode<T: DefaultCodable>(_ type: T.Type, dictionary: [String: Any]) throws -> T {
         let decoder = _DefaultDecoder(decoder: self)
         return try decoder.unbox(dictionary, as: type)
     }
@@ -34,12 +37,13 @@ public extension DefaultDecoder {
 // MARK: - _DefaultDecoder
 final class _DefaultDecoder {
     
-    var options: CodableOptions { decoder.options }
+    var topCodable: DefaultCodable.Type? {
+        storage.topContainer.1 as? DefaultCodable.Type
+    }
+    
+    let decoder: DefaultDecoder
     
     private var storage = DecodingStorage<(Any, Any.Type)>()
-    
-    private let decoder: DefaultDecoder
-    
     
     init(decoder: DefaultDecoder) {
         self.decoder = decoder
@@ -60,7 +64,7 @@ extension _DefaultDecoder {
     func getRealKey(key: String) -> String {
         let type = String(reflecting: storage.topContainer.1)
         let realKey = decoder.realKeys[type] ?? {
-            guard let codable = storage.topContainer.1 as? DefaultCodable.Type else {
+            guard let codable = topCodable else {
                 return [:]
             }
             
@@ -84,7 +88,7 @@ extension _DefaultDecoder {
     func getValueDefault(key: String) -> Any? {
         let type = String(reflecting: storage.topContainer.1)
         let defaultValue = decoder.defaultValues[type] ?? {
-            guard let codable = storage.topContainer.1 as? DefaultCodable.Type else {
+            guard let codable = topCodable else {
                 return [:]
             }
             

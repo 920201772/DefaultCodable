@@ -32,7 +32,7 @@ private extension DefaultUnkeyedDecodingContainer {
         }
         
         let value = container[currentIndex]
-        if decoder.options.contains(.xml) {
+        if decoder.decoder.options.contains(.xml) {
             if let string = value as? String,
                let type = Value.self as? RawString.Type,
                let value = type.init(rawString: string) as? Value {
