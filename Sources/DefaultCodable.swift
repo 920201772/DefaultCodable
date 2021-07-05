@@ -31,7 +31,20 @@ public extension DefaultCodable {
     
 }
 
-// MARK: - CodableOptions
+// MARK: - Public
+
+public protocol _CodableEnumMarker {
+    
+    static var _rawType: Any.Type { get }
+    
+    static func _isDecodable(rawValue: Any) -> Bool
+    
+}
+
+public protocol DefaultEnumCodable: Codable, _CodableEnumMarker, RawRepresentable where RawValue: Decodable {}
+public typealias JSONEnum = DefaultEnumCodable
+public typealias XMLEnum = DefaultEnumCodable
+
 public struct CodableOptions: OptionSet {
 
     public let rawValue: Int
@@ -60,6 +73,20 @@ extension DefaultCodable {
     
     static func defaultSerialization() -> [String: Any] {
         (try? JSONSerialization.jsonObject(with: JSONEncoder().encode(self.init()))) as? [String: Any] ?? [:]
+    }
+    
+}
+
+extension DefaultEnumCodable {
+    
+    static var _rawType: Any.Type { RawValue.self }
+    
+    static func _isDecodable(rawValue: Any) -> Bool {
+        if let rawValue = rawValue as? RawValue {
+            return Self.init(rawValue: rawValue) != nil
+        }
+        
+        return false
     }
     
 }

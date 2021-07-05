@@ -1,5 +1,5 @@
 //
-//  RawString.swift
+//  XMLRaw.swift
 //  DefaultCodable
 //
 //  Created by 杨柳 on 2021/3/5.
@@ -8,13 +8,13 @@
 
 import Foundation
 
-protocol RawString {
+protocol XMLRaw {
     
     init?(rawString: String)
     
 }
 
-extension Bool: RawString {
+extension Bool: XMLRaw {
     
     init?(rawString: String) {
         switch rawString {
@@ -22,13 +22,11 @@ extension Bool: RawString {
         case "False": self.init(false)
         default: return nil
         }
-        
-        
     }
     
 }
 
-extension String: RawString {
+extension String: XMLRaw {
     
     init?(rawString: String) {
         self.init(rawString)
@@ -36,7 +34,7 @@ extension String: RawString {
     
 }
 
-extension Double: RawString {
+extension Double: XMLRaw {
     
     init?(rawString: String) {
         self.init(rawString)
@@ -44,7 +42,7 @@ extension Double: RawString {
     
 }
 
-extension Float: RawString {
+extension Float: XMLRaw {
     
     init?(rawString: String) {
         self.init(rawString)
@@ -52,7 +50,7 @@ extension Float: RawString {
     
 }
 
-extension Int: RawString {
+extension Int: XMLRaw {
     
     init?(rawString: String) {
         self.init(rawString)
@@ -60,7 +58,7 @@ extension Int: RawString {
     
 }
 
-extension Int8: RawString {
+extension Int8: XMLRaw {
     
     init?(rawString: String) {
         self.init(rawString)
@@ -68,7 +66,7 @@ extension Int8: RawString {
     
 }
 
-extension Int16: RawString {
+extension Int16: XMLRaw {
     
     init?(rawString: String) {
         self.init(rawString)
@@ -76,7 +74,7 @@ extension Int16: RawString {
     
 }
 
-extension Int32: RawString {
+extension Int32: XMLRaw {
     
     init?(rawString: String) {
         self.init(rawString)
@@ -84,7 +82,7 @@ extension Int32: RawString {
     
 }
 
-extension Int64: RawString {
+extension Int64: XMLRaw {
     
     init?(rawString: String) {
         self.init(rawString)
@@ -92,7 +90,7 @@ extension Int64: RawString {
     
 }
 
-extension UInt: RawString {
+extension UInt: XMLRaw {
     
     init?(rawString: String) {
         self.init(rawString)
@@ -100,7 +98,7 @@ extension UInt: RawString {
     
 }
 
-extension UInt8: RawString {
+extension UInt8: XMLRaw {
     
     init?(rawString: String) {
         self.init(rawString)
@@ -108,7 +106,7 @@ extension UInt8: RawString {
     
 }
 
-extension UInt16: RawString {
+extension UInt16: XMLRaw {
     
     init?(rawString: String) {
         self.init(rawString)
@@ -116,7 +114,7 @@ extension UInt16: RawString {
     
 }
 
-extension UInt32: RawString {
+extension UInt32: XMLRaw {
     
     init?(rawString: String) {
         self.init(rawString)
@@ -124,7 +122,7 @@ extension UInt32: RawString {
     
 }
 
-extension UInt64: RawString {
+extension UInt64: XMLRaw {
     
     init?(rawString: String) {
         self.init(rawString)

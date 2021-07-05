@@ -34,21 +34,40 @@ private extension DefaultUnkeyedDecodingContainer {
         let value = container[currentIndex]
         if decoder.decoder.options.contains(.xml) {
             if let string = value as? String,
-               let type = Value.self as? RawString.Type,
+               let type = Value.self as? XMLRaw.Type,
                let value = type.init(rawString: string) as? Value {
                 currentIndex += 1
-                
                 return value
             }
         }
         
         if let value = value as? Value {
             currentIndex += 1
-            
             return value
         }
         
         throw DecodingError.valueNotFound(type, .init(codingPath: codingPath, debugDescription: "Expected \(type) but found null instead."))
+    }
+    
+    /// 枚举类型特化
+    mutating func _decode(_ type: _CodableEnumMarker.Type) throws -> Any {
+        guard !self.isAtEnd else {
+            throw DecodingError.valueNotFound(type, .init(codingPath: codingPath, debugDescription: "Unkeyed container is at end."))
+        }
+        
+        let value = container[currentIndex]
+        if decoder.decoder.options.contains(.xml) {
+            if let string = value as? String,
+               let rawType = type._rawType.self as? XMLRaw.Type,
+               let value = rawType.init(rawString: string),
+               type._isDecodable(rawValue: value) {
+                currentIndex += 1
+                return value
+            }
+        }
+        
+        currentIndex += 1
+        return value
     }
     
 }
@@ -142,6 +161,9 @@ extension DefaultUnkeyedDecodingContainer: UnkeyedDecodingContainer {
             
         case is CGFloat.Type:
             value = try _decode(Double.self)
+            
+        case let enumType as _CodableEnumMarker.Type:
+            value = try _decode(enumType)
             
         default:
             value = try _decode(Any.self)

@@ -36,7 +36,7 @@ private extension DefaultKeyedDecodingContainer {
                     return value
                 }
                 
-                if let type = Value.self as? RawString.Type,
+                if let type = Value.self as? XMLRaw.Type,
                    let string = value as? String,
                    let value = type.init(rawString: string) as? Value {
                     return value
@@ -56,6 +56,43 @@ private extension DefaultKeyedDecodingContainer {
         
         if let newValue = decoder.topCodable?.decode(value: value, key: key, decoder: decoder.decoder) {
             return newValue
+        }
+        
+        return value
+    }
+    
+    /// 枚举类型特化
+    func _decode(_ type: _CodableEnumMarker.Type, forKey key: Key) throws -> Any {
+        func getValue(key: String) -> Any? {
+            if let raw = container[decoder.getRealKey(key: key)] {
+                if type._isDecodable(rawValue: raw)  {
+                    return raw
+                }
+                
+                if decoder.decoder.options.contains(.xml) {
+                    if let rawType = type._rawType as? XMLRaw.Type,
+                       let string = raw as? String,
+                       let value = rawType.init(rawString: string),
+                       type._isDecodable(rawValue: value) {
+                        return value
+                    }
+                }
+            }
+            
+            if let raw = decoder.getValueDefault(key: key) {
+                return raw
+            }
+            
+            return nil
+        }
+        
+        let keyName = key.stringValue
+        guard let value = getValue(key: keyName) else {
+            throw DecodingError.keyNotFound(key, .init(codingPath: decoder.codingPath, debugDescription: "No value associated with key: \(keyName)."))
+        }
+        
+        if let topCodable = decoder.topCodable {
+            return topCodable.decode(value: value, key: key, decoder: decoder.decoder)
         }
         
         return value
@@ -156,6 +193,9 @@ extension DefaultKeyedDecodingContainer: KeyedDecodingContainerProtocol {
         
         case is CodableArrayMarker.Type:
             value = try _decode([Any].self, forKey: key)
+            
+        case let enumType as _CodableEnumMarker.Type:
+            value = try _decode(enumType, forKey: key)
             
         case is CGFloat.Type:
             value = try _decode(Double.self, forKey: key)
