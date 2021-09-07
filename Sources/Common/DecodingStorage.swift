@@ -10,9 +10,15 @@ import Foundation
 
 struct DecodingStorage<Element> {
     
-    private var containers: [Element] = []
+    var topContainer: Element {
+        get { containers[containers.endIndex - 1] }
+        set { containers[containers.endIndex - 1] = newValue }
+    }
     
-    var topContainer: Element { containers.last! }
+    var count: Int { containers.count }
+    var isEmpty: Bool { containers.isEmpty }
+    
+    private var containers: [Element] = []
     
     mutating func push(container: Element) {
         containers.append(container)

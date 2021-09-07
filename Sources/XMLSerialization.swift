@@ -8,10 +8,10 @@
 
 import Foundation
 
-public final class XMLSerialization {
+public enum XMLSerialization {
     
-    public class func dictionary(url: URL) throws -> [String: Any] {
-        guard let xml = _XMLParser(contentsOf: url) else {
+    public static func dictionary(url: URL) throws -> [String: Any] {
+        guard let xml = Parser(contentsOf: url) else {
             throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "XML file not found."))
         }
         
@@ -22,43 +22,41 @@ public final class XMLSerialization {
             throw error
         }
         
-        return xml.container as! [String: Any]
+        return xml.storage.topContainer
     }
     
 }
 
-// MARK: - _XMLDecode
-private class _XMLParser: XMLParser {
-     
-    private(set) var container: NSMutableDictionary!
+// MARK: - Parser
+private extension XMLSerialization {
     
-    private var storage = DecodingStorage<NSMutableDictionary>()
-    
-}
-
-// MARK: - _XMLDecode XMLParserDelegate
-extension _XMLParser: XMLParserDelegate {
-
-    func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String: String] = [:]) {
-        let attr = NSMutableDictionary(dictionary: attributeDict)
+    final class Parser: XMLParser, XMLParserDelegate {
         
-        if container == nil {
-            container = attr
-        } else if let element = storage.topContainer[elementName] {
-            if let array = element as? NSMutableArray {
-                array.add(attr)
-            } else {
-                storage.topContainer[elementName] = NSMutableArray(arrayLiteral: element, attr)
-            }
-        } else {
-            storage.topContainer[elementName] = attr
+        private(set) var storage = DecodingStorage<[String: Any]>()
+        
+        func parser(_ parser: Foundation.XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
+            storage.push(container: attributeDict)
         }
         
-        storage.push(container: attr)
-    }
-    
-    func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
-        storage.popContainer()
+        func parser(_ parser: Foundation.XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
+            if storage.count == 1 { return }
+            
+            let dict = storage.topContainer
+            
+            storage.popContainer()
+            
+            if let element = storage.topContainer[elementName] {
+                if var array = element as? [Any] {
+                    array.append(dict)
+                    storage.topContainer[elementName] = array
+                } else {
+                    storage.topContainer[elementName] = [element, dict]
+                }
+            } else {
+                storage.topContainer[elementName] = dict
+            }
+        }
+        
     }
     
 }
