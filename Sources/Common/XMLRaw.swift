@@ -34,98 +34,58 @@ extension String: XMLRaw {
     
 }
 
-extension Double: XMLRaw {
-    
+extension BinaryFloatingPoint {
+
     init?(rawString: String) {
-        self.init(rawString)
+        var value = 0.0
+        if Scanner(string: rawString).scanDouble(&value), let this = Self(exactly: value) {
+            self = this
+        } else {
+            return nil
+        }
     }
-    
+
 }
 
-extension Float: XMLRaw {
-    
+extension Double: XMLRaw {}
+extension Float: XMLRaw {}
+extension CGFloat: XMLRaw {}
+
+#if os(iOS)
+extension Float16: XMLRaw {}
+#endif
+
+extension FixedWidthInteger {
+
     init?(rawString: String) {
-        self.init(rawString)
+        if Self.isSigned {
+            var value: Int64 = 0
+            if Scanner(string: rawString).scanInt64(&value){
+                value.limit(Int64(Self.min)...Int64(Self.max))
+                self = .init(value)
+            } else {
+                return nil
+            }
+        } else {
+            var value: UInt64 = 0
+            if Scanner(string: rawString).scanUnsignedLongLong(&value) {
+                value.limit(UInt64(Self.min)...UInt64(Self.max))
+                self = .init(value)
+            } else {
+                return nil
+            }
+        }
     }
-    
+
 }
 
-extension Int: XMLRaw {
-    
-    init?(rawString: String) {
-        self.init(rawString)
-    }
-    
-}
-
-extension Int8: XMLRaw {
-    
-    init?(rawString: String) {
-        self.init(rawString)
-    }
-    
-}
-
-extension Int16: XMLRaw {
-    
-    init?(rawString: String) {
-        self.init(rawString)
-    }
-    
-}
-
-extension Int32: XMLRaw {
-    
-    init?(rawString: String) {
-        self.init(rawString)
-    }
-    
-}
-
-extension Int64: XMLRaw {
-    
-    init?(rawString: String) {
-        self.init(rawString)
-    }
-    
-}
-
-extension UInt: XMLRaw {
-    
-    init?(rawString: String) {
-        self.init(rawString)
-    }
-    
-}
-
-extension UInt8: XMLRaw {
-    
-    init?(rawString: String) {
-        self.init(rawString)
-    }
-    
-}
-
-extension UInt16: XMLRaw {
-    
-    init?(rawString: String) {
-        self.init(rawString)
-    }
-    
-}
-
-extension UInt32: XMLRaw {
-    
-    init?(rawString: String) {
-        self.init(rawString)
-    }
-    
-}
-
-extension UInt64: XMLRaw {
-    
-    init?(rawString: String) {
-        self.init(rawString)
-    }
-    
-}
+extension Int: XMLRaw {}
+extension Int8: XMLRaw {}
+extension Int16: XMLRaw {}
+extension Int32: XMLRaw {}
+extension Int64: XMLRaw {}
+extension UInt: XMLRaw {}
+extension UInt8: XMLRaw {}
+extension UInt16: XMLRaw {}
+extension UInt32: XMLRaw {}
+extension UInt64: XMLRaw {}
