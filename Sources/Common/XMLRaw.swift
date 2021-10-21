@@ -34,22 +34,27 @@ extension String: XMLRaw {
     
 }
 
-extension BinaryFloatingPoint {
+extension Double: XMLRaw {
 
     init?(rawString: String) {
-        var value = 0.0
-        if Scanner(string: rawString).scanDouble(&value), let this = Self(exactly: value) {
-            self = this
-        } else {
+        self = 0.0
+        if !Scanner(string: rawString).scanDouble(&self) {
             return nil
         }
     }
 
 }
 
-extension Double: XMLRaw {}
-extension Float: XMLRaw {}
-extension CGFloat: XMLRaw {}
+extension Float: XMLRaw {
+
+    init?(rawString: String) {
+        self = 0.0
+        if !Scanner(string: rawString).scanFloat(&self) {
+            return nil
+        }
+    }
+
+}
 
 extension FixedWidthInteger {
 
