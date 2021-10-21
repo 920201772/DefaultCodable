@@ -51,10 +51,6 @@ extension Double: XMLRaw {}
 extension Float: XMLRaw {}
 extension CGFloat: XMLRaw {}
 
-#if os(iOS)
-extension Float16: XMLRaw {}
-#endif
-
 extension FixedWidthInteger {
 
     init?(rawString: String) {
