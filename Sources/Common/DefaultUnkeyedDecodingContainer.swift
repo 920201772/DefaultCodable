@@ -9,7 +9,7 @@
 import Foundation
 import CoreGraphics
 
-struct DefaultUnkeyedDecodingContainer {
+class DefaultUnkeyedDecodingContainer {
     
     private(set) var currentIndex = 0
     
@@ -26,31 +26,32 @@ struct DefaultUnkeyedDecodingContainer {
 // MARK: - Private
 private extension DefaultUnkeyedDecodingContainer {
     
-    mutating func _decode<Value>(_ type: Value.Type) throws -> Value {
+    func _decode<Value>(_ type: Value.Type) throws -> Value {
         guard !self.isAtEnd else {
             throw DecodingError.valueNotFound(type, .init(codingPath: codingPath, debugDescription: "Unkeyed container is at end."))
         }
         
         let value = container[currentIndex]
+        currentIndex += 1
+        
         if decoder.decoder.options.contains(.xml) {
             if let string = value as? String,
                let type = Value.self as? XMLRaw.Type,
                let value = type.init(rawString: string) as? Value {
-                currentIndex += 1
                 return value
             }
         }
         
         if let value = value as? Value {
-            currentIndex += 1
             return value
         }
         
-        throw DecodingError.valueNotFound(type, .init(codingPath: codingPath, debugDescription: "Expected \(type) but found null instead."))
+        return try _decode(type)
+//        throw DecodingError.valueNotFound(type, .init(codingPath: codingPath, debugDescription: "Expected \(type) but found null instead."))
     }
     
     /// 枚举类型特化
-    mutating func _decode(_ type: _CodableEnumMarker.Type) throws -> Any {
+    func _decode(_ type: _CodableEnumMarker.Type) throws -> Any {
         guard !self.isAtEnd else {
             throw DecodingError.valueNotFound(type, .init(codingPath: codingPath, debugDescription: "Unkeyed container is at end."))
         }
@@ -79,8 +80,8 @@ extension DefaultUnkeyedDecodingContainer: UnkeyedDecodingContainer {
     var count: Int? { container.count }
     var isAtEnd: Bool { currentIndex >= count! }
     
-    mutating func decodeNil() throws -> Bool {
-        guard !self.isAtEnd else {
+    func decodeNil() throws -> Bool {
+        guard !isAtEnd else {
             throw DecodingError.valueNotFound(Any?.self, .init(codingPath: codingPath, debugDescription: "Unkeyed container is at end."))
         }
 
@@ -93,93 +94,120 @@ extension DefaultUnkeyedDecodingContainer: UnkeyedDecodingContainer {
         }
     }
     
-    mutating func decode(_ type: Bool.Type) throws -> Bool {
+    func decode(_ type: Bool.Type) throws -> Bool {
         try _decode(type)
     }
     
-    mutating func decode(_ type: String.Type) throws -> String {
+    func decode(_ type: String.Type) throws -> String {
         try _decode(type)
     }
     
-    mutating  func decode(_ type: Double.Type) throws -> Double {
+    func decode(_ type: Double.Type) throws -> Double {
         try _decode(type)
     }
     
-    mutating  func decode(_ type: Float.Type) throws -> Float {
+    func decode(_ type: Float.Type) throws -> Float {
         try _decode(type)
     }
     
-    mutating func decode(_ type: Int.Type) throws -> Int {
+    func decode(_ type: Int.Type) throws -> Int {
         try _decode(type)
     }
     
-    mutating func decode(_ type: Int8.Type) throws -> Int8 {
+    func decode(_ type: Int8.Type) throws -> Int8 {
         try _decode(type)
     }
     
-    mutating func decode(_ type: Int16.Type) throws -> Int16 {
+    func decode(_ type: Int16.Type) throws -> Int16 {
         try _decode(type)
     }
     
-    mutating func decode(_ type: Int32.Type) throws -> Int32 {
+    func decode(_ type: Int32.Type) throws -> Int32 {
         try _decode(type)
     }
     
-    mutating func decode(_ type: Int64.Type) throws -> Int64 {
+    func decode(_ type: Int64.Type) throws -> Int64 {
         try _decode(type)
     }
     
-    mutating func decode(_ type: UInt.Type) throws -> UInt {
+    func decode(_ type: UInt.Type) throws -> UInt {
         try _decode(type)
     }
     
-    mutating func decode(_ type: UInt8.Type) throws -> UInt8 {
+    func decode(_ type: UInt8.Type) throws -> UInt8 {
         try _decode(type)
     }
     
-    mutating func decode(_ type: UInt16.Type) throws -> UInt16 {
+    func decode(_ type: UInt16.Type) throws -> UInt16 {
         try _decode(type)
     }
     
-    mutating func decode(_ type: UInt32.Type) throws -> UInt32 {
+    func decode(_ type: UInt32.Type) throws -> UInt32 {
         try _decode(type)
     }
     
-    mutating func decode(_ type: UInt64.Type) throws -> UInt64 {
+    func decode(_ type: UInt64.Type) throws -> UInt64 {
         try _decode(type)
     }
     
-    mutating func decode<T: Decodable>(_ type: T.Type) throws -> T {
+    func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
         let value: Any
-        
+
         switch type {
         case is DefaultCodable.Type, is CodableDictionaryMarker.Type:
             value = try _decode([String: Any].self)
-        
+
         case is CodableArrayMarker.Type:
             value = try _decode([Any].self)
-            
+
         case is CGFloat.Type:
             value = try _decode(Double.self)
-            
+
         case let enumType as _CodableEnumMarker.Type:
             value = try _decode(enumType)
-            
+
         default:
-            value = try _decode(Any.self)
+            value = try _decode(type)
         }
-        
+
         return try decoder.unbox(value, as: type)
     }
     
-    mutating func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
+//    mutating func decode<T: Decodable>(_ type: T.Type) throws -> T {
+//        let value: Any
+//
+//        switch type {
+//        case is DefaultCodable.Type, is CodableDictionaryMarker.Type:
+//            value = try _decode([String: Any].self)
+//
+//        case is CodableArrayMarker.Type:
+//            value = try _decode([Any].self)
+//
+//        case is CGFloat.Type:
+//            value = try _decode(Double.self)
+//
+//        case let enumType as _CodableEnumMarker.Type:
+//            value = try _decode(enumType)
+//
+//        default:
+//            value = try _decode(type)
+//        }
+//
+//        return try decoder.unbox(value, as: type)
+//    }
+    
+//    func decodeIfPresent(_ type: Int.Type) throws -> Int? {
+//        <#code#>
+//    }
+    
+    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
         let value = try _decode([String: Any].self)
         let container = DefaultKeyedDecodingContainer<NestedKey>(decoder: decoder, container: value)
         
         return KeyedDecodingContainer(container)
     }
     
-    mutating func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
+    func nestedUnkeyedContainer() throws -> UnkeyedDecodingContainer {
         let value = try _decode([Any].self)
         
         return DefaultUnkeyedDecodingContainer(decoder: decoder, container: value)

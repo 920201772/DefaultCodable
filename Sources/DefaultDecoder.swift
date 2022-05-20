@@ -123,7 +123,7 @@ extension _DefaultDecoder: Decoder {
     var userInfo: [CodingUserInfoKey: Any] { [:] }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
-        guard let topContainer = storage.topContainer.0 as? [String : Any] else {
+        guard let topContainer = storage.topContainer.0 as? [String: Any] else {
             throw DecodingError.typeMismatch([String: Any].self, DecodingError.Context.init(codingPath: codingPath, debugDescription: "The given data was not valid Dictionary."))
         }
 

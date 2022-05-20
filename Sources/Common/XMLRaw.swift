@@ -61,7 +61,7 @@ extension FixedWidthInteger {
     init?(rawString: String) {
         if Self.isSigned {
             var value: Int64 = 0
-            if Scanner(string: rawString).scanInt64(&value){
+            if Scanner(string: rawString).scanInt64(&value) {
                 value.limit(Int64(Self.min)...Int64(Self.max))
                 self = .init(value)
             } else {

@@ -1,11 +1,21 @@
 import XCTest
-@testable import DefaultCodable
+import DefaultCodable
 
 struct AAA: JSON {
     
-    var age: [Int?] = [11]
-    var name: String = ""
-    var name1: String = "111"
+//    var age: [String] = []
+//    var name: String = ""
+    var name1: BBB? = BBB()
+    
+//    init(from decoder: Decoder) throws {
+//
+//    }
+    init() {
+        
+    }
+//    func encode(to encoder: Encoder) throws {
+//
+//    }
 //    var name2: [String: JSONMetadata] = [:]
 //    var name3: JSONMetadata = 0
 //
@@ -15,15 +25,7 @@ struct AAA: JSON {
 
 struct BBB: JSON {
     
-    var a = "aaaaa"
-    
-}
-
-struct CCC: JSON {
-//    var b: [BBB?] = .init()
-    var e: [EEE] = []
-//    var c: [Int: BBB] = .init()
-    var i = 100
+    var a: String? = "aaaaa"
     
 }
 
@@ -37,16 +39,34 @@ enum EEE: String, JSONEnum {
 final class JSONTests: XCTestCase {
     
     func testExample() {
+//        HappyCodable
+//        https://github.com/apple/swift/blob/88b093e9d77d6201935a2c2fb13f27d961836777/stdlib/public/Darwin/Foundation/JSONEncoder.swift
         do {
-//            let a = try AAA.decode(text: #"{"age": [222, null], "age1": [{"a": "bbbb"}, {"a": "ccc"}], "name": "123", "b": {"a": "bbbb"}, "name2": {"S": true, "E": 2}, "name3": true}"#)
-//            print(a)
-            
-            let c = try CCC.decode(text: #"{"b": [{"a": "ccc"}, {"a": "ddd"}], "e": ["bb", "cc", "bb", "aa"], "c": {"0": {"a": "ccc"}}, "i": 200}"#)
-            
-            print(c)
+            let a = try AAA.decode(text: """
+            {
+                "age": ["222"],
+                "age1": [
+                    {"a": "bbbb"}, {"a": "ccc"}
+                ],
+                "name": "123",
+                "b": {
+                    "a": "bbbb"
+                },
+                "name2": {
+                    "S": true,
+                    "E": 2
+                },
+                "name3": true,
+                "name1": 123
+            }
+            """)
+            print(a)
         } catch {
             print(error)
         }
+
+        let decoder = JSONDecoder()
+        decoder.decode(<#T##T#>, from: <#T##Foundation.Data#>)
     }
 
     static var allTests = [

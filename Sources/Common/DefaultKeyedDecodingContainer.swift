@@ -124,7 +124,7 @@ extension DefaultKeyedDecodingContainer: KeyedDecodingContainerProtocol {
         guard let value: Any = getValue(key: keyName) else {
             throw DecodingError.keyNotFound(key, .init(codingPath: decoder.codingPath, debugDescription: "No value associated with key: \(keyName)."))
         }
-                
+        
         return value is NSNull
     }
     
