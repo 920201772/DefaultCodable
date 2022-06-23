@@ -28,14 +28,8 @@ public extension JSON {
         return try decode(data: data, options: options, userInfo: userInfo)
     }
     
-}
-
-// MARK: - Method
-extension JSON {
-    
-    static func defaultEncodeJSON() -> [String: Any] {
+    static func encodeJSON() -> [String: Any] {
         (try? JSONSerialization.jsonObject(with: JSONEncoder().encode(self.init()))) as? [String: Any] ?? [:]
     }
     
 }
-

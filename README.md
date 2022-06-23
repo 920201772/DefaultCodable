@@ -1,5 +1,6 @@
 # DefaultCodable
-A description of this package.
+- Version: 0.0.5
+- Modify date: 22/06/23  
 
 ## Requirements
 - iOS 10.0+ / macOS 10.12+
