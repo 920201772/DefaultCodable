@@ -1,6 +1,6 @@
 # DefaultCodable
-- Version: 0.0.5
-- Modify date: 22/06/23  
+- Version: 0.0.7
+- Modify date: 22/06/24  
 
 ## Requirements
 - iOS 10.0+ / macOS 10.12+

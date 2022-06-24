@@ -10,11 +10,8 @@ import Foundation
 
 public enum XMLSerialization {
     
-    public static func dictionary(url: URL) throws -> [String: Any] {
-        guard let xml = Parser(contentsOf: url) else {
-            throw DecodingError.dataCorrupted(.init(codingPath: [], debugDescription: "XML file not found."))
-        }
-        
+    public static func dictionary(data: Data) throws -> [String: Any] {
+        let xml = Parser(data: data)
         xml.delegate = xml
         
         xml.parse()
