@@ -28,8 +28,26 @@ public extension JSON {
         return try decode(data: data, options: options, userInfo: userInfo)
     }
     
-    static func encodeJSON() -> [String: Any] {
-        (try? JSONSerialization.jsonObject(with: JSONEncoder().encode(self.init()))) as? [String: Any] ?? [:]
+    func encodeJSONData() throws -> Data {
+        try JSONEncoder().encode(self)
+    }
+    
+    func encodeJSONString() throws -> String {
+        let data = try encodeJSONData()
+        if let text = String(data: data, encoding: .utf8) {
+            return text
+        }
+        
+        throw EncodingError.invalidValue(data, .init(codingPath: [], debugDescription: "Encoding utf-8 fail."))
+    }
+    
+    func encodeJSON() throws -> [String: Any] {
+        let data = try encodeJSONData()
+        if let dic = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            return dic
+        }
+        
+        throw EncodingError.invalidValue(data, .init(codingPath: [], debugDescription: "Encoding dictionary fail."))
     }
     
 }
